@@ -1,6 +1,6 @@
 # Agent-Jail 🔒🤖
 
-A lightweight, programmatic, zero-dependency Node.js/TypeScript sandbox and hardware emulation gateway designed to safely anchor and execute instructions from autonomous AI Agents.
+A lightweight, programmatic, zero-dependency Node.js/TypeScript sandbox and hardware emulation gateway designed to safely anchor and execute instructions from autonomous AI Agents by ScottVentures.
 
 ---
 
