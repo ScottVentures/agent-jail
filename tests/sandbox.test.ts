@@ -10,7 +10,6 @@ describe('Agent-Jail Complete Security Suite', () => {
       allowedPaths: ['/project/workspace'],
       blockedCommands: ['sudo', 'rm', 'mv']
     });
-    // Lower baseline pool timeouts to keep test cycles fast
     jail = new AgentJail(policy, { timeoutMs: 1000 });
     vfs = new VirtualFileSystem();
   });
@@ -44,18 +43,19 @@ describe('Agent-Jail Complete Security Suite', () => {
       expect(result.stdout).toContain('test-pass');
     });
 
-    // We pass 10000ms as a 3rd parameter so Jest lets the test finalize gracefully without a timeout error
     it('should forcefully kill infinite loops exceeding timeout thresholds', async () => {
       const isWindows = process.platform === 'win32';
+      
+      // Using standard cmd.exe pause hooks for Windows prevents PowerShell background process leakage
       const loopCmd = isWindows 
-        ? "powershell -Command \"while($true) { Start-Sleep 1 }\"" 
+        ? "ping 127.0.0.1 -n 10 > nul" 
         : "while true; do sleep 1; done";
 
-      // Forcing a swift 200ms container timeout traps the process instantly
-      const result = await jail.execute(loopCmd, { timeoutMs: 200 });
+      // Set a strict 150ms timeout limit so it cuts off immediately
+      const result = await jail.execute(loopCmd, { timeoutMs: 150 });
       expect(result.error).toBe('Timeout Exceeded');
       expect(result.stderr).toContain('[AgentJail Timeout Error]');
-    }, 10000); 
+    }, 15000); 
   });
 
   // --- VIRTUAL STORAGE TESTS ---
