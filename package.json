@@ -5,7 +5,11 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "publishConfig": {
-    "registry": "https://github.com"
+    "registry": "https://npm.pkg.github.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com"
   },
   "scripts": {
     "build": "tsc",
@@ -21,7 +25,7 @@
     "vibe-coding",
     "mock"
   ],
-  "author": "John Mwadime",
+  "author": "ScottVentures",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^30.0.0",
