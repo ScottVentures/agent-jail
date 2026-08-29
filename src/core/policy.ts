@@ -1,3 +1,6 @@
+import { NetworkGatewayGuard } from '../mocks/networkMock';
+
+
 export interface PolicyConfig {
   allowedPaths?: string[];     // Directories the agent is allowed to touch
   blockedCommands?: string[];   // Specific binary names to blacklist completely
@@ -89,6 +92,16 @@ export class SecurityPolicy {
           };
         }
       }
+    }
+    // Create an internal network validator instance inside the engine check
+    const networkGuard = new NetworkGatewayGuard();
+    const networkCheck = networkGuard.validateRequest(trimmed);
+
+    if (!networkCheck.isAllowed) {
+      return {
+        isSafe: false,
+        reason: networkCheck.reason
+      };
     }
 
     // If all internal assertions pass, mark as validated safely

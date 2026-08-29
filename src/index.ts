@@ -8,3 +8,4 @@ export { AgentJail, JailExecutionResult, JailOptions } from './core/jailer';
 
 // Mock Gateway Components
 export { VirtualFileSystem, VirtualNode } from './mocks/fsMock';
+export { NetworkGatewayGuard, NetworkPolicyConfig, NetworkValidationResult } from './mocks/networkMock';
