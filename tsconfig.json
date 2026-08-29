@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "declaration": true,
-    "types": ["node"]
+    "types": ["node", "jest"]  // 👈 Added "jest" here
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "tests/**/*"] // 👈 Tells TypeScript to include the tests folder in type safety mapping
 }
