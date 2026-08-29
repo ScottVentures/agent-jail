@@ -50,10 +50,12 @@ agent-jail/
 
 ### Installation
 
+### Installation
+
 Install `agent-jail` directly from this GitHub repository into any destination project folder setup using npm:
 
 ```bash
-npm install github:YOUR_USERNAME/agent-jail
+npm install github:ScottVentures/agent-jail
 ```
 
 ### Complete Implementation Example
