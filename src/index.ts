@@ -1,7 +1,8 @@
 // Main export target for the package
 export { SecurityPolicy, PolicyConfig, ValidationResult } from './core/policy';
 export { AgentJail, JailExecutionResult, JailOptions } from './core/jailer';
-export { AgentChatBotSimulator, MockPrompt } from './core/bot'; 
+export { AgentChatBotSimulator, MockPrompt } from './core/bot';
+export { AuditLogger, AuditLogEntry } from './core/logger'; 
 
 
 // Placeholders for the upcoming Jail execution runner components
