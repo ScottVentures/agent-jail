@@ -1,6 +1,5 @@
 import { NetworkGatewayGuard } from '../mocks/networkMock';
 
-
 export interface PolicyConfig {
   allowedPaths?: string[];     // Directories the agent is allowed to touch
   blockedCommands?: string[];   // Specific binary names to blacklist completely
@@ -21,7 +20,6 @@ export class SecurityPolicy {
   private maxCommandLength: number;
 
   constructor(config: PolicyConfig = {}) {
-    // Default safe profiles if the developer doesn't supply constraints
     this.allowedPaths = config.allowedPaths || [];
     this.blockedCommands = config.blockedCommands || [
       'sudo', 'su', 'rm', 'mv', 'dd', 'mkfs', 'chown', 'chmod', 'passwd', 'kill', 'pkill'
@@ -49,51 +47,7 @@ export class SecurityPolicy {
       };
     }
 
-    // 3. Command Injection & Pipeline Splitting Analysis
-    // We break the execution down by shell operators (&&, ||, ;, |) to evaluate each segment independently
-    const segments = trimmed.split(/[&|;]/);
-    
-    for (const segment of segments) {
-      const cleanSegment = segment.trim();
-      if (!cleanSegment) continue;
-
-      // Extract the primary executable/binary token (e.g., "rm" out of "rm -rf /")
-      const tokens = cleanSegment.split(/\s+/);
-      const binary = tokens[0].toLowerCase();
-
-      // Check against explicit blacklist
-      if (this.blockedCommands.includes(binary)) {
-        return {
-          isSafe: false,
-          reason: `Security Policy Violation: The command binary '${binary}' is blacklisted and restricted.`
-        };
-      }
-
-      // 4. Malicious Path Traversal / Pattern Mitigation
-      // Detect common destructive parameters or relative breakout strings ("../", "/etc", etc.)
-      if (cleanSegment.includes('../') || cleanSegment.includes('..\\')) {
-        return {
-          isSafe: false,
-          reason: "Security Policy Violation: Relative path traversal breakout attempts detected ('..')."
-        };
-      }
-
-      // Root path containment scanning
-      if (this.allowedPaths.length > 0) {
-        const pathMatchesAllowed = this.allowedPaths.some(allowedPath => 
-          cleanSegment.includes(allowedPath)
-        );
-        
-        // If the command hints at file interaction but stays outside the perimeter workspace paths
-        if ((cleanSegment.includes('/') || cleanSegment.includes('\\')) && !pathMatchesAllowed) {
-          return {
-            isSafe: false,
-            reason: "Security Policy Violation: Action points to paths completely outside the designated sandbox perimeter workspace."
-          };
-        }
-      }
-    }
-    // Create an internal network validator instance inside the engine check
+    // 3. RUN NETWORK SCANS FIRST (Done globally before fragmenting the pipeline)
     const networkGuard = new NetworkGatewayGuard();
     const networkCheck = networkGuard.validateRequest(trimmed);
 
@@ -104,14 +58,55 @@ export class SecurityPolicy {
       };
     }
 
-    // If all internal assertions pass, mark as validated safely
+    // 4. Command Injection & Pipeline Splitting Analysis
+    const segments = trimmed.split(/[&|;]/);
+    
+    for (const segment of segments) {
+      const cleanSegment = segment.trim();
+      if (!cleanSegment) continue;
+
+      // Extract primary binary token safely
+      const tokens = cleanSegment.split(/\s+/);
+      const binary = tokens[0].toLowerCase();
+
+      // Check binary blacklist
+      if (this.blockedCommands.includes(binary)) {
+        return {
+          isSafe: false,
+          reason: `Security Policy Violation: The command binary '${binary}' is blacklisted and restricted.`
+        };
+      }
+
+      // 5. Malicious Path Traversal / Pattern Mitigation
+      if (cleanSegment.includes('../') || cleanSegment.includes('..\\')) {
+        return {
+          isSafe: false,
+          reason: "Security Policy Violation: Relative path traversal breakout attempts detected ('..')."
+        };
+      }
+
+      // 6. Perimeter Workspace Containment Scanning
+      if (this.allowedPaths.length > 0) {
+        const pathMatchesAllowed = this.allowedPaths.some(allowedPath => 
+          cleanSegment.includes(allowedPath)
+        );
+        
+        if ((cleanSegment.includes('/') || cleanSegment.includes('\\')) && !pathMatchesAllowed) {
+          return {
+            isSafe: false,
+            reason: "Security Policy Violation: Action points to paths completely outside the designated sandbox perimeter workspace."
+          };
+        }
+      }
+    }
+
+    // If all assertions pass, clear it as safe
     return {
       isSafe: true,
       sanitizedCommand: trimmed
     };
   }
 
-  // Programmatic updates to the rules engine at runtime
   public blacklistCommand(cmd: string): void {
     if (!this.blockedCommands.includes(cmd.toLowerCase())) {
       this.blockedCommands.push(cmd.toLowerCase());
