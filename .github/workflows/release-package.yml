@@ -1,0 +1,55 @@
+name: Publish to GitHub Packages
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Run Complete Security Verification Suite
+        run: npm test
+
+      - name: Build Production Transpiled Bundle
+        run: npm run build
+
+  publish-gpr:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for Registry Publishing
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://github.com'
+          scope: '@scottventures'
+
+      - name: Install Project Dependencies
+        run: npm ci
+
+      - name: Run Build Before Publish
+        run: npm run build
+
+      - name: Publish Package to GitHub Registry
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

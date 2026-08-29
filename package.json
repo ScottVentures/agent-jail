@@ -4,6 +4,9 @@
   "description": "A lightweight local sandbox and mock gateway for anchoring autonomous AI agents.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "publishConfig": {
+    "registry": "https://github.com"
+  },
   "scripts": {
     "build": "tsc",
     "test": "jest --forceExit",
